@@ -1,0 +1,284 @@
+%!GLoBES
+
+$version="3.0.0"
+
+/* ############################################################################
+  *                                                                            *
+  *                                                                            *
+  *   Copyright 2007, The GLoBES Team                                          *
+  *                                                                            *
+  *   This file is a starting draft of a AEDL file for the tutorial            *
+  *                                                                            *
+  *   "Advanced usage of AEDL"                                                 *
+  *                                                                            *
+  *   at the GLoBES Workshop, 24-26 January 2007, Heidelberg                        *
+  *                                                                            *
+  *   This file was prepared by M. Rolinec.                                    *
+  *                                                                            *
+  *   Last update 22/01/07                                                     *
+  *                                                                            *
+  *   WARNING: This file only describes a TOY example. The attributes of       *
+  *            the described experiment are completely fictious. Do not use    *
+  *            this file or any of the data files coming with this file for    *
+  *            scientific purposes.                                            *
+  *                                                                            *
+   ############################################################################ 
+*/ 
+
+/* HINT: If you are not familiar with describing experiments 
+         in AEDL, you should first visit page 83 of the 
+	 GLoBES manual. There, it is explained how one can
+	 include data, e.g. lists, from external data files
+	 into an AEDL file (not required for flux or cross 
+	 section data files). There is no "cut and paste" required. */
+
+/* I will use this toy model to build SBN MicroBoone (middle) detector */
+
+/* ######################## Beam flux ######################################### */
+
+/* In this section the beam flux of the toy experiment can 
+   be set up. The description how neutrino fluxes can be 
+   implemented from an external data file can be found in 
+   the GLoBES manual on pages 88-90. */
+
+/* Beam data */
+include "./flux/MICRO.inc"
+
+
+
+/* ######################## Detector settings ################################# */
+
+/* Here the fiducial mass of the detector can be adjusted 
+   (see page 88 of the GLoBES manual). */
+
+
+$target_mass = 	0.089        	/* kt (fiducial mass) */
+
+
+/* ######################## Energy window ##################################### */
+
+/* Here, the energy window and bin numbers are defined. 
+   The description of how to set the energy window is given 
+   on pages 95-97 in the GLoBES manual. */
+
+
+/* True Energy Level (pre-smearing) */
+
+$sampling_points = 99         /* number of sampling points 
+				   before energy smearing */
+$sampling_min = 0.026             /* GeV */
+$sampling_max = 4.97             /* GeV */
+
+/* Reconstructed Energy Level (post-smearing) */
+
+$emin = 0.2	        	/* GeV */
+$emax = 3.0	        	/* GeV */
+/*$bins = 30 */
+
+$binsize = {0.15 , 0.15 , 0.15 , 0.15 , 0.15 , 0.15 , 0.20 , 0.20 , 0.25 , 0.25, 1.0 } /* bins with different sizes */
+
+/*{0.1, 0.1, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.25, 0.25, 0.5, 0.5, 0.5} */
+
+
+/* ######################## Baseline setting ################################## */
+
+/* In this section, the baseline length of the experiment and
+   the matter density is inserted to the AEDL file. There are 
+   three different profile types possible in GLoBES. Please choose
+   the one that seems to be appropriate for the requirements 
+   of the toy experiment that has to be described. Explanations
+   of the three types and the necesary AEDL syntax are given in 
+   the GLoBES manual on pages 90-91. */ 
+
+$baseline = 0.47   /* km */
+$profiletype = 1. /* constant density *
+
+/* ######################## Energy resolution ################################# */
+
+/* In this section, the energy resolution of different channels can 
+   be defined. One can either use manually defined migration matrices
+   or use the automatic energy smearing of the energy resolution 
+   functions provided by GLoBES. The implementation of smearing 
+   matrices is described in the GLoBES manual on pages 101-102 and the 
+   usage of the GLoBES internal resolution functions is explained on
+   pages 98-100 */
+
+
+energy(#electron)<	        /* energy resolution for electrons and photons */
+    @type = 1
+    @sigma_function = #standard
+    @sigma_e = {0.0,0.15,0.0} 	
+>
+
+energy(#muon)<			/* energy resolution for muons and pions */
+    @type = 1
+    @sigma_function = #standard
+    @sigma_e = {0.0,0.06,0.0} 	
+>
+
+/* HINT: If one wants to compute the event rates without energy 
+         smearing, one still has to assign a number, so that 
+	 the AEDL file works properly. The value has to be very 
+	 small, so that no actual energy smearing is introduced. */
+
+$filter_state = 1
+$filter_value = 0.0
+
+
+/* ######################## Cross sections #################################### */
+
+/* In this section, the cross section data for different channels is 
+   loaded from external data files. Explanations can be found in the 
+   GLoBES manual on pages 91-92. */
+
+cross(#CC)<
+	@cross_file = "./xsec/XCC.dat"
+>
+
+cross(#NC)<
+	@cross_file = "./xsec/XNC.dat"
+>
+
+/* ####### Channel definitions ####### */
+/*NUE APP */
+channel(#nu_e_signal)<
+	@channel = 	#MICROplus:	+:	m:	e:	#CC:    #electron
+  //      @post_smearing_efficiencies = {0.0176317, 0.0204941, 0.0177459, 0.0160216, 0.0137517, 0.0120872, 0.0110718, 0.00942904, 0.0143968, 0.02458, 0.}
+>
+
+channel(#anu_e_signal)<
+	@channel = 	#MICROplus:	-:	m:	e:	#CC:    #electron
+   //     @post_smearing_efficiencies = {0.0176317, 0.0204941, 0.0177459, 0.0160216, 0.0137517, 0.0120872, 0.0110718, 0.00942904, 0.0143968, 0.02458, 0.}
+>
+
+channel(#nu_e_beam)<
+	@channel = 	#MICROplus:	+:	e:	e:	#CC:    #electron
+   //     @post_smearing_efficiencies = {0.0196347, 0.0207609, 0.019736, 0.0184081, 0.0177845, 0.0165526, 0.0150089, 0.0138126, 0.0124301, 0.0112286, 0.0106771}
+>
+
+channel(#anu_e_beam)<
+	@channel = 	#MICROplus:	-:	e:	e:	#CC:    #electron
+    //    @post_smearing_efficiencies = {0.0196347, 0.0207609, 0.019736, 0.0184081, 0.0177845, 0.0165526, 0.0150089, 0.0138126, 0.0124301, 0.0112286, 0.0106771}
+>
+
+channel(#nu_mu_CC)<
+	@channel = 	#MICROplus:	+:	m:	m:	#CC:    #muon
+  //     @post_smearing_efficiencies = {0.0000388794, 0.0000174488, 0.0000064943, 0.00000411792, 0.00000297832, 0.0000029857, 0.00000165837, 0.00000106706, 0.00000351605, 0.00000755489, 0.}
+>
+
+channel(#anu_mu_CC)<
+	@channel = 	#MICROplus:	-:	m:	m:	#CC:    #muon
+    //    @post_smearing_efficiencies = {0.0000388794, 0.0000174488, 0.0000064943, 0.00000411792, 0.00000297832, 0.0000029857, 0.00000165837, 0.00000106706, 0.00000351605, 0.00000755489, 0.}
+>
+
+channel(#nu_mu_NC)<
+	@channel = 	#MICROplus:	+:	m:	NOSC_m:	#NC:    #muon
+> 
+
+channel(#anu_mu_NC)<
+	@channel = 	#MICROplus:	-:	m:	NOSC_m:	#NC:    #muon
+> 
+
+
+/*ANUE APP */
+channel(#nu_bar_e_beam)<
+	@channel = 	#MICROminus:	+:	e:	e:	#CC:    #electron
+    //    @post_smearing_efficiencies = {0.0196347, 0.0207609, 0.019736, 0.0184081, 0.0177845, 0.0165526, 0.0150089, 0.0138126, 0.0124301, 0.0112286, 0.0106771}
+>
+
+channel(#anu_bar_e_beam)<
+	@channel = 	#MICROminus:	-:	e:	e:	#CC:    #electron
+   //    @post_smearing_efficiencies = {0.0196347, 0.0207609, 0.019736, 0.0184081, 0.0177845, 0.0165526, 0.0150089, 0.0138126, 0.0124301, 0.0112286, 0.0106771}
+>
+
+channel(#nu_bar_e_signal)<
+	@channel = 	#MICROminus:	+:	m:	e:	#CC:    #electron
+    //    @post_smearing_efficiencies = {0.0176317, 0.0204941, 0.0177459, 0.0160216, 0.0137517, 0.0120872, 0.0110718, 0.00942904, 0.0143968, 0.02458, 0.}
+>
+
+channel(#anu_bar_e_signal)<
+	@channel = 	#MICROminus:	-:	m:	e:	#CC:    #electron
+   //    @post_smearing_efficiencies = {0.0176317, 0.0204941, 0.0177459, 0.0160216, 0.0137517, 0.0120872, 0.0110718, 0.00942904, 0.0143968, 0.02458, 0.}
+>
+
+channel(#nu_bar_mu_CC)<
+	@channel = 	#MICROminus:	+:	m:	m:	#CC:    #muon
+   //     @post_smearing_efficiencies = {0.0000388794, 0.0000174488, 0.0000064943, 0.00000411792, 0.00000297832, 0.0000029857, 0.00000165837, 0.00000106706, 0.00000351605, 0.00000755489, 0.}
+>
+
+channel(#anu_bar_mu_CC)<
+	@channel = 	#MICROminus:	-:	m:	m:	#CC:    #muon
+  //      @post_smearing_efficiencies = {0.0000388794, 0.0000174488, 0.0000064943, 0.00000411792, 0.00000297832, 0.0000029857, 0.00000165837, 0.00000106706, 0.00000351605, 0.00000755489, 0.}
+>
+
+ channel(#nu_bar_mu_NC)<
+	@channel = 	#MICROminus:	+:	m:	NOSC_m:	#NC:    #muon
+>
+
+channel(#anu_bar_mu_NC)<
+  	@channel = 	#MICROminus:	-:	m:	NOSC_m:	#NC:    #muon
+> 
+
+
+/* ####### Setting the rules ####### */
+
+rule(#Nu_E_Appearance)<
+ 	@signal = 0.0159@#nu_e_signal : 0.0159@#anu_e_signal
+	
+	@background =  0.0156@#nu_e_beam : 0.0156@#anu_e_beam : 0.0000054@#nu_mu_CC : 0.0000054@#anu_mu_CC : 0.000034@#nu_mu_NC : 0.000034@#anu_mu_NC 
+        @energy_window = 0.2 : 3.0	
+        
+        @sys_off_function = "chiNoSysSpectrum"
+        @sys_off_errors   = {}
+        @sys_on_function  = "chiGabiNorm"
+        @sys_on_errors    = {0.1 , 0.1}
+                         /* { SigNorm, BGNorm} */
+>
+
+rule(#Nu_E_Bar_Appearance)<
+ 	@signal = 0.0159@#nu_bar_e_signal : 0.0159@#anu_bar_e_signal
+	
+	@background =  0.0156@#nu_bar_e_beam : 0.0156@#anu_bar_e_beam : 0.0000054@#nu_bar_mu_CC : 0.0000054@#anu_bar_mu_CC : 0.000034@#nu_bar_mu_NC : 0.000034@#anu_bar_mu_NC 
+	@energy_window = 0.2 : 3.0	
+
+        @sys_off_function = "chiNoSysSpectrum"
+        @sys_off_errors   = {}
+        @sys_on_function  = "chiGabiNorm"
+        @sys_on_errors    = {0.1, 0.1}
+                         /* { SigNorm, BGNorm} */	
+>
+
+/* ############################################################################
+  *                                                                            *
+  *                               END OF FILE                                  *
+  *				                                               *
+   ############################################################################ */
+
+
+/*
+rule(#Nu_E_Appearance)<
+ 	@signal = 0.97@#nu_e_signal : 0.97@#anu_e_signal
+	@signalerror = 0.01 : 0.0001
+	
+	@background =  0.97@#nu_e_beam : 0.97@#anu_e_beam : 0.97@#nu_mu_CC : 0.97@#anu_mu_CC
+	@backgrounderror = 0.01 : 0.0001
+		
+	@sys_on_function = "chiSpectrumTilt"
+	@sys_off_function = "chiNoSysSpectrum"
+	
+	@energy_window = 0.2 : 3.0
+>
+
+rule(#Nu_E_Bar_Appearance)<
+ 	@signal = 0.97@#nu_bar_e_signal : 0.97@#anu_bar_e_signal
+	@signalerror = 0.1 : 0.0001
+	
+	@background =  0.97@#nu_bar_e_beam : 0.97@#anu_bar_e_beam : 0.97@#nu_bar_mu_CC : 0.97@#anu_bar_mu_CC
+	@backgrounderror = 0.1 : 0.0001
+		
+	@sys_on_function = "chiSpectrumTilt"
+	@sys_off_function = "chiNoSysSpectrum"
+	
+	@energy_window = 0.2 : 3.0
+>
+*/ 
